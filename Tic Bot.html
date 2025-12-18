@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tic-Tac-Toe 3x3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            /* Light Theme Colors */
+            --bg-color: #f0f2f5;
+            --primary-bg: #ffffff;
+            --secondary-bg: #e8ebef;
+            --text-color: #000000;
+            --text-secondary: #333333;
+            --border-color: #dee2e6;
+            --accent-color: #00C8C8; /* Teal for X */
+            --header-bg: #4A90E2;
+            --header-text: #FFFFFF;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --player-o-color: #FF7043; /* Orange for O */
+
+            /* General Variables */
+            --border-radius-sm: 8px;
+            --border-radius-md: 12px;
+            --border-radius-lg: 16px;
+            --spacing-sm: 10px;
+            --spacing-md: 20px;
+            --spacing-lg: 30px;
+        }
+        * {
+            margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column;
+            align-items: center; min-height: 100vh; width: 100vw;
+            overflow: hidden;
+            position: relative; /* For footer positioning */
+        }
+        .header {
+            background: var(--header-bg);
+            color: var(--header-text);
+            padding: 14px var(--spacing-md);
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 15px var(--shadow); position: fixed; top: 0; width: 100%; z-index: 100;
+            border-bottom-left-radius: var(--border-radius-lg);
+            border-bottom-right-radius: var(--border-radius-lg);
+            max-width: 1200px; margin: 0 auto; left: 50%; transform: translateX(-50%);
+        }
+        .back-btn {
+            font-size: 26px;
+            cursor: pointer; padding: 8px;
+            color: var(--header-text);
+        }
+        .back-btn:hover {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .header-ad-square {
+            background-color: var(--secondary-bg);
+            height: 60px;
+            width: calc(100% - 60px);
+            max-width: 550px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            flex-shrink: 1;
+            margin-left: 5px;
+        }
+        
+        .main {
+            width: 100%;
+            flex-grow: 1; /* Allows main content to take up available space */
+            margin-top: calc(80px + var(--spacing-md));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: var(--spacing-md);
+            overflow-y: auto;
+            padding-bottom: calc(var(--spacing-md) + 90px); /* Space for footer (increased slightly) */
+        }
+
+        .game-setup {
+            background-color: var(--primary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            box-shadow: 0 2px 8px var(--shadow);
+            margin-bottom: var(--spacing-md);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+            justify-content: center;
+        }
+        .mode-button {
+            padding: 15px 20px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            background-color: var(--accent-color);
+            color: white;
+            flex: 1;
+            max-width: 180px;
+            transition: background-color 0.2s ease;
+        }
+        .mode-button:hover {
+            background-color: #00A3A3;
+        }
+        .mode-button.active {
+            background-color: #4A90E2;
+        }
+
+        .game-info {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            text-align: center;
+            min-height: 1.5em; /* Prevent layout shift */
+        }
+
+        .game-board {
+            --grid-size: 3;
+            --cell-size: 120px; /* Made board slightly bigger */
+            display: grid;
+            grid-template-columns: repeat(var(--grid-size), var(--cell-size));
+            grid-template-rows: repeat(var(--grid-size), var(--cell-size));
+            gap: 5px;
+            background-color: var(--border-color);
+            border: 5px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            background-color: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em; 
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            color: var(--text-color);
+        }
+        .cell:hover:not(.x):not(.o) {
+            background-color: var(--secondary-bg);
+        }
+        .cell.x {
+            color: var(--accent-color);
+        }
+        .cell.o {
+            color: var(--player-o-color);
+        }
+
+        /* Footer and its contents */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--primary-bg);
+            border-top: 1px solid var(--border-color);
+            padding: var(--spacing-sm);
+            box-shadow: 0 -2px 8px var(--shadow);
+            z-index: 99;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            transform: translateX(-50%);
+            left: 50%;
+            border-top-left-radius: var(--border-radius-md);
+            border-top-right-radius: var(--border-radius-md);
+            min-height: 80px; /* Ensure space even for message */
+        }
+
+        .score-buttons-container,
+        .difficulty-buttons-container {
+            display: none; /* Hidden by default, JS will manage */
+            width: 100%;
+            justify-content: center;
+            gap: var(--spacing-md);
+            padding: 5px 0; /* Some padding for content */
+        }
+        
+        .score-button {
+            padding: 12px 20px;
+            font-size: 1.3em;
+            font-weight: 700;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            cursor: default; 
+            background-color: var(--secondary-bg);
+            color: var(--text-color);
+            min-width: 120px; /* Slightly wider for "Player X" text */
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .score-button.x-score {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        .score-button.o-score {
+            background-color: var(--player-o-color);
+            color: white;
+        }
+
+        .difficulty-button {
+            padding: 12px 18px; /* Adjusted padding to be consistent */
+            font-size: 1.1em; /* Adjusted font size to be consistent */
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            background-color: var(--secondary-bg);
+            color: var(--text-color);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            flex: 1;
+            max-width: 120px; /* Consistent max width */
+            font-weight: 600; /* Made consistent with other buttons */
+        }
+        .difficulty-button:hover {
+            background-color: #d9e0e8;
+        }
+        .difficulty-button.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .no-mode-message {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            font-size: 1.1em;
+            color: var(--text-secondary);
+            text-align: center;
+            width: 100%;
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .header { padding: 12px 16px; border-bottom-left-radius: var(--border-radius-md); border-bottom-right-radius: var(--border-radius-md); }
+            .header-ad-square { height: 50px; font-size: 12px; width: calc(100% - 70px); margin-left: 5px;}
+            .main { padding: var(--spacing-sm); margin-top: calc(70px + var(--spacing-sm)); padding-bottom: calc(var(--spacing-sm) + 80px); }
+            .game-board {
+                --cell-size: 90px;
+            }
+            .cell {
+                font-size: 3.2em;
+            }
+            .game-info { font-size: 1.1em; }
+            .mode-button { padding: 12px 16px; font-size: 1em; }
+            .score-button { padding: 10px 15px; font-size: 1.1em; min-width: 90px; }
+            .difficulty-button { padding: 8px 12px; font-size: 0.9em; }
+            .footer { padding: 8px var(--spacing-sm); min-height: 70px;}
+            .no-mode-message { font-size: 1em; padding: 12px; }
+        }
+
+        @media (max-width: 480px) {
+            .header { padding: 10px 12px; border-bottom-left-radius: var(--border-radius-sm); border-bottom-right-radius: var(--border-radius-sm); }
+            .header-ad-square { height: 45px; font-size: 10px; width: calc(100% - 60px); margin-left: 2px;}
+            .main { padding: var(--spacing-sm); margin-top: calc(60px + var(--spacing-sm)); padding-bottom: calc(var(--spacing-sm) + 70px); }
+            .game-board {
+                --cell-size: 80px;
+            }
+            .cell {
+                font-size: 2.8em;
+            }
+            .game-info { font-size: 1em; }
+            .mode-button { padding: 10px 14px; font-size: 0.9em; }
+            .score-button { padding: 8px 12px; font-size: 1em; min-width: 70px; }
+            .difficulty-button { padding: 6px 10px; font-size: 0.8em; }
+            .footer { padding: 6px var(--spacing-sm); gap: var(--spacing-sm); min-height: 60px; }
+            .no-mode-message { font-size: 0.9em; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="back-btn" id="back-btn"><i class="fas fa-arrow-left"></i></div>
+        <div class="header-ad-square">
+            Your Top Banner Ad Here
+        </div>
+    </div>
+    <div class="main">
+        <div class="game-setup">
+            <div class="mode-buttons">
+                <button class="mode-button" id="mode-1v1">1 VS Friend</button>
+                <button class="mode-button" id="mode-1vbot">1 VS Bot</button>
+            </div>
+        </div>
+
+        <div class="game-info" id="game-info">Select a game mode to start!</div>
+        
+        <div class="game-board" id="game-board">
+            </div>
+    </div>
+
+    <div class="footer">
+        <div class="score-buttons-container" id="score-buttons-container">
+            <button class="score-button x-score">Player X: <span id="score-x">0</span></button>
+            <button class="score-button o-score">Player O: <span id="score-o">0</span></button>
+        </div>
+        <div class="difficulty-buttons-container" id="difficulty-buttons-container">
+            <button class="difficulty-button" data-difficulty="easy">Easy</button>
+            <button class="difficulty-button" data-difficulty="normal">Normal</button>
+            <button class="difficulty-button" data-difficulty="hard">Hard</button>
+        </div>
+        <div class="no-mode-message" id="no-mode-message">
+            Select a game mode above to choose an option!
+        </div>
+    </div>
+    
+    <script>
+        const backBtn = document.getElementById('back-btn');
+        const mode1v1Button = document.getElementById('mode-1v1');
+        const mode1vBotButton = document.getElementById('mode-1vbot');
+        const gameInfo = document.getElementById('game-info');
+        const gameBoard = document.getElementById('game-board');
+        
+        // Footer elements
+        const scoreButtonsContainer = document.getElementById('score-buttons-container');
+        const difficultyButtonsContainer = document.getElementById('difficulty-buttons-container');
+        const difficultyButtons = difficultyButtonsContainer.querySelectorAll('.difficulty-button');
+        const scoreXSpan = document.getElementById('score-x');
+        const scoreOSpan = document.getElementById('score-o');
+        const noModeMessage = document.getElementById('no-mode-message');
+
+        const BOARD_SIZE = 3;
+        const WIN_CONDITION = 3; 
+        let board = [];
+        let currentPlayer = 'X';
+        let gameActive = false;
+        let gameMode = null; 
+        let botDifficulty = 'easy'; 
+        let scores = { 'X': 0, 'O': 0 };
+
+        // Generate the 3x3 board dynamically
+        const createBoard = () => {
+            gameBoard.innerHTML = ''; // Clear existing board
+            board = Array(BOARD_SIZE * BOARD_SIZE).fill('');
+            gameBoard.style.gridTemplateColumns = `repeat(${BOARD_SIZE}, var(--cell-size))`;
+            gameBoard.style.gridTemplateRows = `repeat(${BOARD_SIZE}, var(--cell-size))`;
+
+            for (let i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.dataset.cellIndex = i;
+                cell.addEventListener('click', handleCellClick);
+                gameBoard.appendChild(cell);
+            }
+        };
+
+        const getCells = () => document.querySelectorAll('.cell');
+
+        const handleCellClick = (e) => {
+            const clickedCell = e.target;
+            const clickedCellIndex = parseInt(clickedCell.dataset.cellIndex);
+
+            if (!gameActive || board[clickedCellIndex] !== '') {
+                return;
+            }
+
+            makeMove(clickedCell, clickedCellIndex);
+
+            if (gameActive && gameMode === '1vbot' && currentPlayer === 'O') {
+                setTimeout(botMove, 700); 
+            }
+        };
+
+        const makeMove = (cellElement, index) => {
+            board[index] = currentPlayer;
+            cellElement.textContent = currentPlayer;
+            cellElement.classList.add(currentPlayer.toLowerCase()); 
+
+            checkResult();
+            
+            if (gameActive) { 
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                updateGameInfo();
+            }
+        };
+
+        const checkResult = () => {
+            let roundWon = false;
+            let winnerPlayer = '';
+
+            const winningCombinations = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], 
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], 
+                [0, 4, 8], [2, 4, 6]             
+            ];
+
+            for (let i = 0; i < winningCombinations.length; i++) {
+                const winCondition = winningCombinations[i];
+                let a = board[winCondition[0]];
+                let b = board[winCondition[1]];
+                let c = board[winCondition[2]];
+
+                if (a === '' || b === '' || c === '') {
+                    continue;
+                }
+                if (a === b && b === c) {
+                    roundWon = true;
+                    winnerPlayer = a;
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                gameInfo.textContent = `Player ${winnerPlayer} Wins!`;
+                gameActive = false;
+                if (gameMode === '1v1') {
+                    scores[winnerPlayer]++;
+                    updateScoreDisplay();
+                }
+                setTimeout(startGame, 1500); 
+                return;
+            }
+
+            let roundDraw = !board.includes('');
+            if (roundDraw) {
+                gameInfo.textContent = `It's a Draw!`;
+                gameActive = false;
+                setTimeout(startGame, 1500); 
+                return;
+            }
+        };
+
+        const updateGameInfo = () => {
+            if (gameActive) {
+                gameInfo.textContent = `It's Player ${currentPlayer}'s turn`;
+            }
+        };
+
+        const updateScoreDisplay = () => {
+            scoreXSpan.textContent = scores['X'];
+            scoreOSpan.textContent = scores['O'];
+        };
+
+        const startGame = () => {
+            createBoard(); 
+            board = Array(BOARD_SIZE * BOARD_SIZE).fill('');
+            currentPlayer = 'X';
+            gameActive = true;
+            updateGameInfo();
+
+            if (gameMode === '1vbot' && currentPlayer === 'O') {
+                 setTimeout(botMove, 700); 
+            }
+        };
+
+        const handleModeSelection = (mode) => {
+            gameMode = mode;
+            mode1v1Button.classList.remove('active');
+            mode1vBotButton.classList.remove('active');
+
+            // Hide initial message
+            noModeMessage.style.display = 'none';
+
+            if (mode === '1v1') {
+                mode1v1Button.classList.add('active');
+                difficultyButtonsContainer.style.display = 'none';
+                scoreButtonsContainer.style.display = 'flex'; 
+                scores = { 'X': 0, 'O': 0 }; 
+                updateScoreDisplay();
+            } else { 
+                mode1vBotButton.classList.add('active');
+                difficultyButtonsContainer.style.display = 'flex';
+                scoreButtonsContainer.style.display = 'none'; 
+                if (!document.querySelector('.difficulty-button.active')) {
+                    difficultyButtons[0].classList.add('active');
+                    botDifficulty = 'easy';
+                }
+            }
+            setTimeout(startGame, 700); 
+        };
+
+        const handleDifficultySelection = (e) => {
+            difficultyButtons.forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            botDifficulty = e.target.dataset.difficulty;
+            setTimeout(startGame, 700); 
+        };
+
+        // Bot Logic
+        const botMove = () => {
+            if (!gameActive) return;
+
+            let bestMove = -1;
+            const availableCells = board.map((cell, index) => cell === '' ? index : -1).filter(index => index !== -1);
+
+            if (availableCells.length === 0) return; 
+
+            if (botDifficulty === 'easy') {
+                bestMove = availableCells[Math.floor(Math.random() * availableCells.length)];
+            } else if (botDifficulty === 'normal') {
+                // 50% easy, 50% normal strategy
+                if (Math.random() < 0.5) { 
+                    bestMove = availableCells[Math.floor(Math.random() * availableCells.length)];
+                } else { 
+                    bestMove = findStrategicMove('O'); 
+                    if (bestMove === -1) {
+                        bestMove = findStrategicMove('X'); 
+                    }
+                    if (bestMove === -1) {
+                        // Take center if available
+                        if (board[4] === '') bestMove = 4;
+                    }
+                    if (bestMove === -1) {
+                        // Take a random corner if available
+                        const corners = [0, 2, 6, 8].filter(index => board[index] === '');
+                        if (corners.length > 0) bestMove = corners[Math.floor(Math.random() * corners.length)];
+                    }
+                    if (bestMove === -1) {
+                        // Take any available cell
+                        bestMove = availableCells[Math.floor(Math.random() * availableCells.length)];
+                    }
+                }
+            } else if (botDifficulty === 'hard') {
+                bestMove = findBestMoveMinimax(board, 'O').index;
+            }
+
+            if (bestMove !== -1) {
+                const cells = getCells(); 
+                const cellElement = cells[bestMove];
+                makeMove(cellElement, bestMove);
+            }
+        };
+
+        // Helper for Normal difficulty: finds a winning/blocking move
+        const findStrategicMove = (player) => {
+            const winningCombinations = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], 
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], 
+                [0, 4, 8], [2, 4, 6]             
+            ];
+
+            for (let i = 0; i < winningCombinations.length; i++) {
+                const [a, b, c] = winningCombinations[i];
+                const line = [board[a], board[b], board[c]];
+
+                // Check for two of `player` and one empty spot
+                if (line.filter(cell => cell === player).length === WIN_CONDITION - 1 && line.includes('')) {
+                    if (board[a] === '' && board[b] === player && board[c] === player) return a;
+                    if (board[a] === player && board[b] === '' && board[c] === player) return b;
+                    if (board[a] === player && board[b] === player && board[c] === '') return c;
+                }
+            }
+            return -1; 
+        };
+
+
+        // Minimax for Hard difficulty
+        const checkWinMinimax = (boardToCheck, player) => {
+            const winningCombinations = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], 
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], 
+                [0, 4, 8], [2, 4, 6]             
+            ];
+            for (let i = 0; i < winningCombinations.length; i++) {
+                const [a, b, c] = winningCombinations[i];
+                if (boardToCheck[a] === player && boardToCheck[b] === player && boardToCheck[c] === player) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+
+        const findBestMoveMinimax = (currentBoard, player) => {
+            const availableSpots = currentBoard.map((cell, index) => cell === '' ? index : -1).filter(index => index !== -1);
+
+            if (checkWinMinimax(currentBoard, 'X')) return { score: -10 };
+            else if (checkWinMinimax(currentBoard, 'O')) return { score: 10 };
+            else if (availableSpots.length === 0) return { score: 0 };
+
+            let moves = [];
+            for (let i = 0; i < availableSpots.length; i++) {
+                let move = {};
+                move.index = availableSpots[i];
+                currentBoard[availableSpots[i]] = player;
+
+                if (player === 'O') {
+                    let result = findBestMoveMinimax(currentBoard, 'X');
+                    move.score = result.score;
+                } else {
+                    let result = findBestMoveMinimax(currentBoard, 'O');
+                    move.score = result.score;
+                }
+
+                currentBoard[availableSpots[i]] = ''; 
+                moves.push(move);
+            }
+
+            let bestMove;
+            if (player === 'O') {
+                let bestScore = -Infinity;
+                for (let i = 0; i < moves.length; i++) {
+                    if (moves[i].score > bestScore) {
+                        bestScore = moves[i].score;
+                        bestMove = i;
+                    }
+                }
+            } else {
+                let bestScore = Infinity;
+                for (let i = 0; i < moves.length; i++) {
+                    if (moves[i].score < bestScore) {
+                        bestScore = moves[i].score;
+                        bestMove = i;
+                    }
+                }
+            }
+            return moves[bestMove];
+        };
+
+        // Event Listeners
+        mode1v1Button.addEventListener('click', () => handleModeSelection('1v1'));
+        mode1vBotButton.addEventListener('click', () => handleModeSelection('1vbot'));
+        difficultyButtons.forEach(button => button.addEventListener('click', handleDifficultySelection));
+
+        backBtn.addEventListener('click', () => {
+            window.history.back();
+        });
+
+        // Initial setup
+        gameActive = false; 
+        gameInfo.textContent = "Select a game mode to start!";
+        scoreButtonsContainer.style.display = 'none'; // Hide score by default
+        difficultyButtonsContainer.style.display = 'none'; // Hide difficulty by default
+        noModeMessage.style.display = 'flex'; // Show message by default
+        createBoard(); 
+    </script>
+</body>
+</html>
